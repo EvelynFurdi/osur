@@ -1,0 +1,29 @@
+debug ?= 1 #isključiti dodavanjem debug=0 pri make-u, npr. $ make debug=0 run
+
+CFLAGS = -MMD -D DEBUG=$(debug)
+LDFLAGS = -O3
+LDLIBS =
+
+OBJEKTI = smisao.o
+MODULI = dublje/mod-dublje.o na-brzinu/mod-na-brzinu.o
+MODUL = mod-smisao.o
+ZAGLAVLJA=$(OBJEKTI:.o=.d)
+
+$(MODUL): $(OBJEKTI) $(MODULI)
+	$(LD) -r $^ $(LDFLAGS) -o $@
+
+smisao.o: smisao.c smisao.h $(POCETNI_DIREKTORIJ)/postavke.h
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+.PHONY: $(MODULI)
+$(MODULI):
+	$(MAKE) -C $(dir $@)
+
+# brisanje
+.PHONY: brisi
+brisi:
+	$(MAKE) -C dublje  brisi
+	$(MAKE) -C na-brzinu brisi
+	rm -f $(ZAGLAVLJA) $(OBJEKTI) $(MODUL)
+	
+-include $(ZAGLAVLJA)
