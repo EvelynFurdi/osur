@@ -5,7 +5,7 @@ LDFLAGS = -O3
 LDLIBS =
 
 OBJEKTI = ulaz.o
-MODULI = datoteka/mod-datoteka.o generator/mod-generator.o tipkovnica/mod-tipkovnica.o
+MODULI = datoteka/mod-datoteka.o 
 MODUL = mod-ulaz.o
 ZAGLAVLJA=$(OBJEKTI:.o=.d)
 
@@ -23,8 +23,6 @@ $(MODULI):
 .PHONY: brisi
 brisi:
 	$(MAKE) -C datoteka brisi
-	$(MAKE) -C generator brisi
-	$(MAKE) -C tipkovnica brisi
 	rm -f $(ZAGLAVLJA) $(OBJEKTI) $(MODUL)
 
 -include $(ZAGLAVLJA)

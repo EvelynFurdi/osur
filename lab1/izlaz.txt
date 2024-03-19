@@ -1,0 +1,6 @@
+znakova=5695
+rijeci=986
+rijec 'pas' se pojavljuje 2 puta
+rijec 'vuk' se pojavljuje 15 puta
+rijec 'šum' se pojavljuje 17 puta
+ukupno rijeci: 3
