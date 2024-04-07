@@ -5,29 +5,50 @@
 ENTRY(arch_startup)
 
 SECTIONS {
-	.code LOAD_ADDR :
+	.code 0x0 :
 	{
 		kernel_code_addr = .;
 
 		/* instructions */
 		*?/boot/startup.asm.o ( .text* )
+		
+		*?/boot/premjesti.o ( .text* )
 
+	}
+	.instrukcije 0x200000 : AT(0x100000)
+	{
+		kernel_instuction_addr = .;
 		*( .text* )
 	}
-	.data :
+	size_i = SIZEOF(.instrukcije);
+	xxxx = 0x100000;
+
+	.rodata :
 	{
 		kernel_data_addr = .;
 
 		/* read only data (constants), initialized global variables */
-		* ( .rodata* .data* )
+		* ( .rodata* )
 	}
+	size_data = SIZEOF(.rodata);
+	.data :
+	{
+		
+		*(.data* )
+	}
+	size_data += SIZEOF(.data);
 	.bss :
 	{
 		*( .bss* COMMON* )
 
 		. = ALIGN (4096);
 	}
-
+	stog_start = 0x800000 - STACK_SIZE;
+	.stog_u_slici stog_start :
+	{
+		*( .stog )
+		. = ALIGN(4096);
+	}
 	/*
 	 * what with other sections generated with gcc (various versions)?
 	 * if optimizing for size discard them with: /DISCARD/ : { *(*) }
@@ -38,7 +59,9 @@ SECTIONS {
 	 */
 
 #ifndef DEBUG
-	/DISCARD/ : { *(*) }
+    /DISCARD/ : { *(.eh_frame) *(*) }
+#else
+    /DISCARD/ : { *(.eh_frame) }
 #endif
-	kernel_end_addr = .;
+    kernel_end_addr = .;
 }
