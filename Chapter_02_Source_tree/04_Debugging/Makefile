@@ -90,8 +90,7 @@ $(BINFILE): $(OBJECTS) $(LDSCRIPT_PP)
 # starting compiled system in 'qemu' emulator
 qemu: all
 	@echo $(QMSG)
-	@$(QEMU) $(QFLAGS) -kernel $(BINFILE)
-
+	@$(QEMU) $(QFLAGS) -kernel $(BINFILE) -s -S 
 # DEBUGGING
 # For debugging to work: include '-g' in CFLAGS and omit -s and -S from LDFLAGS
 # Best if -O3 flag is also omitted from CFLAGS and LDFLAGS (or some variables
