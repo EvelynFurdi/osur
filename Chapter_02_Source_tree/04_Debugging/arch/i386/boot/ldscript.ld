@@ -22,11 +22,20 @@ SECTIONS {
 	size_i = SIZEOF(.instrukcije);
 	xxxx = 0x10000;
 	
-	.data (instrukcije_end): AT(0x50000)
+	.rodata (instrukcije_end): AT(0x50000)
 	{
 		/* read only data (constants), initialized global variables */
- 		* ( .rodata* .data* )
-		data_end = .;
+ 		* ( .rodata*)
+ 		. = ALIGN(4);
+ 		rodata_end = .;
+	}
+	size_rodata = SIZEOF(.rodata);
+	
+	.data (rodata_end): AT(0x50000 + SIZEOF(.rodata))
+	{
+    		* ( .data*)
+    		. = ALIGN(4);
+    		data_end = .;
 	}
 	size_data = SIZEOF(.data);
 	

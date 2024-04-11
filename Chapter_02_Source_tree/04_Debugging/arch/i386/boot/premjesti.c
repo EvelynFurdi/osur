@@ -3,9 +3,9 @@
 void premjesti()
 {
 	extern int instrukcije_end;
-	extern char size_data;
+	extern size_t size_data;
 	extern size_t size_i;
-	size_t size_d = (size_t) &size_data;
+	size_t size_d = (size_t) size_data;
 	size_t i;
 	char *od = (char *) 0x50000;
 	char *kamo = (char *) (&instrukcije_end);
@@ -23,5 +23,7 @@ void premjesti()
 	for ( i = 0; i< size_d; i++ )
 		*kamo++ = *od++;
 }
+
+
 
 
