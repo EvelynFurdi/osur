@@ -54,7 +54,7 @@ uart_t;
 #define MSR	6	/* Modem Status Register */
 #define SR	7	/* Scratch Register */
 
-#define IER_DEFAULT	7
+#define IER_DEFAULT	5
 #define IER_DISABLE	0
 
 #define FCR_ENABLE	0x01
