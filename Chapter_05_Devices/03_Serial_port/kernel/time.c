@@ -16,6 +16,10 @@ int ktimer_process_event(sigevent_t *evp);
 static int ktimer_cmp(void *_a, void *_b);
 static void ktimer_schedule();
 
+static timespec_t clock; // Globalno sistemsko vrijeme
+//static timespec_t kernel_alarm_time = {0, 0}; // Vrijeme za alarm
+//static void (*kernel_alarm_handler)() = NULL; // Handler za alarm
+
 /*! List of active timers */
 static list_t ktimers;
 
@@ -25,21 +29,52 @@ static timespec_t threshold;
 static ktimer_t *sleep_timer;
 volatile static int sleep_retval, wake_up;
 
+void arch_timer_set_interval(timespec_t period);
+
+static volatile int HZ = 1000;
+
+// Funkcija za postavljanje HZ vrijednosti
+void set_HZ(int new_hz) {
+    HZ = new_hz;
+
+    // Ažuriraj interval tajmera prema novom HZ
+    timespec_t period = {1.0 / HZ*1000000000};
+    arch_timer_set_interval(period);
+}
+
+// Funkcija za dohvat trenutne HZ vrijednosti
+int get_HZ(void) {
+    return HZ;
+}
+
+void core_timer_interrupt_handler(void) {
+    timespec_t increment = {0, 1 / HZ};
+    printf("increment %d %d\n",increment.tv_sec,increment.tv_nsec);
+
+
+    time_add(&clock, &increment);
+    printf("System_time %d %d\n",clock.tv_sec,clock.tv_nsec);
+
+    if (clock.tv_nsec >= 1000000) {
+        clock.tv_nsec -= 1000000;
+        clock.tv_sec++;
+    }
+    ktimer_schedule();
+
+}
+
 
 /*! Initialize time management subsystem */
 int k_time_init()
 {
-	arch_timer_init();
 
 	/* timer list is empty */
 	list_init(&ktimers);
+	clock.tv_sec = clock.tv_nsec = 0;
 
-	arch_get_min_interval(&threshold);
-	threshold.tv_nsec /= 2;
-	if (threshold.tv_sec % 2)
-		threshold.tv_nsec += 500000000L; /* + half second */
-	threshold.tv_sec /= 2;
-
+	timespec_t period = {1.0/HZ*1000000000};
+    	arch_timer_init(period, core_timer_interrupt_handler);
+    	
 	sleep_timer = NULL;
 	sleep_retval = EXIT_SUCCESS;
 	wake_up = FALSE;
@@ -56,7 +91,8 @@ int kclock_gettime(clockid_t clockid, timespec_t *time)
 {
 	ASSERT(time && (clockid==CLOCK_REALTIME || clockid==CLOCK_MONOTONIC));
 
-	arch_get_time(time);
+	*time=clock;
+	printf("getTime: %d\n",time);
 
 	return EXIT_SUCCESS;
 }
@@ -70,7 +106,8 @@ int kclock_settime(clockid_t clockid, timespec_t *time)
 {
 	ASSERT(time && (clockid==CLOCK_REALTIME || clockid==CLOCK_MONOTONIC));
 
-	arch_set_time(time);
+	clock=*time;
+	printf("setTime: %d\n",time);
 
 	return EXIT_SUCCESS;
 }
@@ -326,7 +363,7 @@ static void ktimer_schedule()
 			{
 				ref_time = next->itimer.it_value;
 				time_sub(&ref_time, &time);
-				arch_timer_set(&ref_time, ktimer_schedule);
+				arch_timer_set_interval(ref_time);
 			}
 			/* evade this behaviour! */
 
@@ -345,7 +382,7 @@ static void ktimer_schedule()
 			{
 				ref_time = first->itimer.it_value;
 				time_sub(&ref_time, &time);
-				arch_timer_set(&ref_time, ktimer_schedule);
+				arch_timer_set_interval(ref_time);
 			}
 			break;
 		}

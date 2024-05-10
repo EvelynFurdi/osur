@@ -16,7 +16,10 @@ typedef struct _arch_timer_t_
 	void (*enable_interrupt)();
 	void (*disable_interrupt)();
 	void (*register_interrupt)(void *handler);
+	
 }
 arch_timer_t;
 
-#include <arch/time.h>
+void arch_timer_init(timespec_t period, void *kernel_timer_handler);
+void arch_timer_set_interval(timespec_t period);
+
