@@ -6,6 +6,7 @@
 /* "programs" */
 int hello_world();
 int timer();
+int fsprog();
 int keyboard();
 int segm_fault();
 
