@@ -223,19 +223,19 @@ int k_fs_read_write(descriptor_t *desc, void *buffer, size_t size, int op)
 		//return number of bytes read
 
 		char buf[ft->block_size];
-		size_t todo = size;
+		size_t data_size = size;
 		size_t block = fd->fp / ft->block_size;
-		int from_buffer = fd->fp % ft->block_size;
-		int to_buffer = 0;
-		todo = min(fd->tfd->size - fd->fp, todo);
-		while(todo>0 && fd->fp < size && fd->tfd->block[block]>=0){
+		int from_that_buffer = fd->fp % ft->block_size;
+		int to_that_buffer = 0;
+		data_size = min(fd->tfd->size - fd->fp, data_size);
+		while(data_size>0 && fd->fp < size && fd->tfd->block[block]>=0){
 			DISK_READ(buf, 1, fd->tfd->block[block]);
-			int kopirati = min(min(todo, size - fd->fp), ft->block_size - fd->fp % ft->block_size);
-			memcpy((char *)buffer + to_buffer, (char *)buf + from_buffer, kopirati);
-			to_buffer += kopirati;
-			from_buffer = 0; //idući blok ide od početka
-			todo -= kopirati;
-			fd->fp += kopirati;
+			int copy = min(min(data_size, size - fd->fp), ft->block_size - fd->fp % ft->block_size);
+			memcpy((char *)buffer + to_that_buffer, (char *)buf + from_that_buffer, copy);
+			to_that_buffer += copy;
+			from_that_buffer = 0; //idući blok ide od početka
+			data_size -= copy;
+			fd->fp += copy;
 			block++;
 
 
@@ -243,7 +243,7 @@ int k_fs_read_write(descriptor_t *desc, void *buffer, size_t size, int op)
 
 		//todo
 
-		return size - todo;
+		return size - data_size;
 	}
 	else {
 		//assume there is enough space on disk
@@ -254,13 +254,13 @@ int k_fs_read_write(descriptor_t *desc, void *buffer, size_t size, int op)
 		//and then replace fp+ bytes ... and then write block back
 
 		char buf[ft->block_size];
-		size_t todo = size;
+		size_t data_size = size;
 		size_t block = fd->fp / ft->block_size;
-		size_t maxfilesize = ft->block_size * MAXFILEBLOCKS;
-		int to_buffer = fd->fp % ft->block_size;
-		int from_buffer = 0;
+		size_t max_size = ft->block_size * MAXFILEBLOCKS;
+		int to_that_buffer = fd->fp % ft->block_size;
+		int from_that_buffer = 0;
 		int ind=-1;
-		while(todo>0 && fd->fp<maxfilesize){
+		while(data_size>0 && fd->fp<max_size){
 			int nb = fd->fp/ft->block_size;
 			if(fd->tfd->block[block]==-1){
 				for (int i = 0; i < ft->blocks; i++) {
@@ -279,25 +279,21 @@ int k_fs_read_write(descriptor_t *desc, void *buffer, size_t size, int op)
 
 			}
 			DISK_READ(buf, 1, fd->tfd->block[block]);
-			int kopirati = min(min(todo, size - fd->fp), ft->block_size - fd->fp % ft->block_size);
-			memcpy((char *)buf + to_buffer, (char *)buffer + from_buffer, kopirati);
+			int copy = min(min(data_size, size - fd->fp), ft->block_size - fd->fp % ft->block_size);
+			memcpy((char *)buf + to_that_buffer, (char *)buffer + from_that_buffer, copy);
 			DISK_WRITE(buf,1,fd->tfd->block[nb]);
-			to_buffer = 0; //idući blok ide od početka
-			from_buffer += kopirati;
-			todo -= kopirati;
-			fd->fp += kopirati;
+			to_that_buffer = 0; //idući blok ide od početka
+			from_that_buffer += copy;
+			data_size -= copy;
+			fd->fp += copy;
 			block++;
 		}
 		fd->tfd->size= max(fd->fp, fd->tfd->size);
 		ft->fd->block[ind]=fd->tfd->block[block];
-	
-		
-		
-
 
 		//todo
 
-		return size - todo;
+		return size - data_size;
 	}
 
 	return 0;
