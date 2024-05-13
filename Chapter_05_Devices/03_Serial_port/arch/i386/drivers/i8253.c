@@ -60,15 +60,8 @@ static uint i8253_get()
 /*! Load counter with number equivalent to 'time' */
 static void i8253_set_time_to_counter(timespec_t *time)
 {
-//	uint cnt;
-	printf("time: %d",time);
-	printf("tv_sec: %d, tv_nsec: %d\n", time->tv_sec, time->tv_nsec);
-	printf("Max interval: %d, Min interval: %d\n", i8253.max_interval.tv_nsec, i8253.min_interval.tv_nsec);
-	/*printf("%d",time && time->tv_sec == 0 &&
-		 time->tv_nsec <= i8253.max_interval.tv_nsec &&
-		 time->tv_nsec >= i8253.min_interval.tv_nsec);
-
-
+	uint cnt;
+	
 	ASSERT(time && time->tv_sec == 0 &&
 		 time->tv_nsec <= i8253.max_interval.tv_nsec &&
 		 time->tv_nsec >= i8253.min_interval.tv_nsec);
@@ -76,7 +69,7 @@ static void i8253_set_time_to_counter(timespec_t *time)
 	TIME_TO_COUNT(time, cnt);
 
 	i8253_set(cnt);
-*/	
+	
 }
 
 /*! Read current value from counter and convert it into 'time' */

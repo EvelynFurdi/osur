@@ -20,6 +20,7 @@ static timespec_t clock; // Globalno sistemsko vrijeme
 //static timespec_t kernel_alarm_time = {0, 0}; // Vrijeme za alarm
 //static void (*kernel_alarm_handler)() = NULL; // Handler za alarm
 
+static int HZ_changed=0;
 /*! List of active timers */
 static list_t ktimers;
 
@@ -35,10 +36,11 @@ static volatile int HZ = 1000;
 
 // Funkcija za postavljanje HZ vrijednosti
 void set_HZ(int new_hz) {
-    HZ = new_hz;
-
-    // Ažuriraj interval tajmera prema novom HZ
-    timespec_t period = {1.0 / HZ*1000000000};
+    
+	HZ = new_hz;
+    HZ_changed = 1;
+    
+    timespec_t period = {0,1000000000/HZ};
     arch_timer_set_interval(period);
 }
 
@@ -48,17 +50,24 @@ int get_HZ(void) {
 }
 
 void core_timer_interrupt_handler(void) {
-    timespec_t increment = {0, 1 / HZ};
-    printf("increment %d %d\n",increment.tv_sec,increment.tv_nsec);
+    //printf("increment %d %d\n",increment.tv_sec,increment.tv_nsec);
 
+	if (!HZ_changed && clock.tv_sec >= 3) {
+        // Promijeni HZ
+        set_HZ(5000);
+    }
 
-    time_add(&clock, &increment);
-    printf("System_time %d %d\n",clock.tv_sec,clock.tv_nsec);
+	timespec_t period = {0,1000000000/HZ};
+    time_add(&clock, &period);
+    
 
-    if (clock.tv_nsec >= 1000000) {
-        clock.tv_nsec -= 1000000;
+    if (clock.tv_nsec >= 1000000000) {
+        clock.tv_nsec -= 1000000000;
         clock.tv_sec++;
     }
+   
+
+	
     ktimer_schedule();
 
 }
@@ -72,8 +81,8 @@ int k_time_init()
 	list_init(&ktimers);
 	clock.tv_sec = clock.tv_nsec = 0;
 
-	timespec_t period = {1.0/HZ*1000000000};
-    	arch_timer_init(period, core_timer_interrupt_handler);
+	timespec_t period = {1/HZ};
+    arch_timer_init(period, core_timer_interrupt_handler);
     	
 	sleep_timer = NULL;
 	sleep_retval = EXIT_SUCCESS;
@@ -92,7 +101,7 @@ int kclock_gettime(clockid_t clockid, timespec_t *time)
 	ASSERT(time && (clockid==CLOCK_REALTIME || clockid==CLOCK_MONOTONIC));
 
 	*time=clock;
-	printf("getTime: %d\n",time);
+	//printf("getTime: %d\n",time);
 
 	return EXIT_SUCCESS;
 }
@@ -107,7 +116,7 @@ int kclock_settime(clockid_t clockid, timespec_t *time)
 	ASSERT(time && (clockid==CLOCK_REALTIME || clockid==CLOCK_MONOTONIC));
 
 	clock=*time;
-	printf("setTime: %d\n",time);
+	//printf("setTime: %d\n",time);
 
 	return EXIT_SUCCESS;
 }

@@ -9,6 +9,7 @@ static arch_timer_t *timer = &TIMER;
 void arch_timer_init(timespec_t period, void *kernel_timer_handler)
 {
 
+	timer->init();  // Inicijalizacija tajmera
     // Provera da li je period unutar minimalnog i maksimalnog intervala tajmera
     if (period.tv_sec < timer->min_interval.tv_sec ||
         (period.tv_sec == timer->min_interval.tv_sec && period.tv_nsec < timer->min_interval.tv_nsec))
@@ -21,7 +22,7 @@ void arch_timer_init(timespec_t period, void *kernel_timer_handler)
         period = timer->max_interval;
     }
 
-    timer->init();  // Inicijalizacija tajmera
+    
     timer->set_interval(&period);  // Postavljanje intervala tajmera
     timer->register_interrupt(kernel_timer_handler);  // Registracija funkcije za prekid
     timer->enable_interrupt();  // Omogućavanje prekida

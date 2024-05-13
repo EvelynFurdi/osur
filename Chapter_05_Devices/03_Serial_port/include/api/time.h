@@ -4,6 +4,7 @@
 #include <types/time.h>
 #include <types/signal.h>
 
+int get_HZ();
 int clock_gettime(clockid_t clockid, timespec_t *time);
 int clock_settime(clockid_t clockid, timespec_t *time);
 int clock_nanosleep(clockid_t clockid, int flags, timespec_t *request,

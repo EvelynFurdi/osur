@@ -20,6 +20,5 @@ typedef struct _arch_timer_t_
 }
 arch_timer_t;
 
-void arch_timer_init(timespec_t period, void *kernel_timer_handler);
-void arch_timer_set_interval(timespec_t period);
+#include <arch/time.h>
 
