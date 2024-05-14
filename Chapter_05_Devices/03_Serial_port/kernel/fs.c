@@ -298,3 +298,36 @@ int k_fs_read_write(descriptor_t *desc, void *buffer, size_t size, int op)
 
 	return 0;
 }
+int k_fs_wipe_file(char *filename) {
+    struct fs_node *tfd = NULL;
+    char *fname = &filename[5];
+    char buf[ft->block_size];
+    memset(buf, 'X', ft->block_size);  // Prepisivanje s 'X'
+
+    // Traženje datoteke u tabeli datoteka
+    int i;
+    for (i = 0; i < ft->max_files; i++) {
+        if (strcmp(ft->fd[i].node_name, fname) == 0) {
+            tfd = &ft->fd[i];
+            break;
+        }
+    }
+
+    if (!tfd)
+        return -ENFILE; // Datoteka nije pronađena
+
+    // Prepisivanje svih blokova datoteke s 'X'
+    for (i = 0; i < tfd->blocks; i++) {
+        if (tfd->block[i] != -1) {
+            DISK_WRITE(buf, 1, tfd->block[i]);
+        }
+    }
+
+    // Brisanje zapisa iz tabele datoteka
+    //memset(tfd, 0, sizeof(struct fs_node));
+
+    DISK_WRITE(ft, ft_size, 0); // Ažuriranje tabele datoteka na disku
+
+   return 0;
+}
+

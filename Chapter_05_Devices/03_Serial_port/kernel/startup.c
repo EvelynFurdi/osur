@@ -59,19 +59,42 @@ void k_startup()
 
 	k_fs_init("DISK", 512, 4096);
 
-	int fd = open("file:test", O_CREAT | O_WRONLY, 0);
-	kprintf("fd=%d\n", fd);
-	int retval = write(fd, "neki tekst", 11);
-	kprintf("retval=%d\n", retval);
-	retval = close(fd);
-	kprintf("retval=%d\n", retval);
+	printf("\n");
+    printf("RUNNING FILE OPERATIONS TEST\n");
 
-	fd = open("file:test", O_RDONLY, 0);
-	kprintf("fd=%d\n", fd);
-	char buff[11];
-	retval = read(fd, buff, 11);
-	kprintf("retval=%d\n", retval);
-	kprintf("buff=%s\n", buff);
+    // Kreiranje i pisanje u datoteku
+    int descriptor = open("file:test1", O_CREAT | O_WRONLY, 0);
+    kprintf("Descriptor ID=%d\n", descriptor);
+    int operation_status = write(descriptor, "sample text", 11);
+    kprintf("Operation Status=%d\n", operation_status);
+    operation_status = close(descriptor);
+    kprintf("Close Status=%d\n", operation_status);
+
+    // Čitanje iz datoteke
+    descriptor = open("file:test1", O_RDONLY, 0);
+    kprintf("Descriptor ID=%d\n", descriptor);
+    char read_buffer[12] = {0};
+    operation_status = read(descriptor, read_buffer, 11);
+    kprintf("Read Status=%d\n", operation_status);
+    kprintf("Output=%s\n", read_buffer);
+    operation_status = close(descriptor);
+    kprintf("Close Status=%d\n", operation_status);
+
+    // Prepisivanje sadržaja datoteke
+    operation_status = wipe("file:test1");
+    kprintf("Wipe Status=%d\n", operation_status);
+
+    // Ponovno čitanje iz datoteke
+    descriptor = open("file:test1", O_RDONLY, 0);
+    kprintf("Descriptor ID=%d\n", descriptor);
+    memset(read_buffer, 0, sizeof(read_buffer));
+    operation_status = read(descriptor, read_buffer, 11);
+    kprintf("Read Status=%d\n", operation_status);
+    kprintf("Output after wipe=%s\n", read_buffer);
+    operation_status = close(descriptor);
+    kprintf("Close Status=%d\n", operation_status);
+	
+	
 
 
 	/* start desired program(s) */
@@ -79,7 +102,7 @@ void k_startup()
 	//keyboard();
 	//timer();
 	/* segm_fault(); */
-	fsprog();
+	//fsprog();
 
 	kprintf("\nSystem halted!\n");
 	halt();

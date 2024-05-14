@@ -6,6 +6,9 @@
 #include <api/errno.h>
 #include <lib/string.h>
 
+#include <kernel/fs.h>
+#include <types/io.h>
+
 int _errno;	/* Error number that represent last syscall error */
 
 static descriptor_t std_desc[MAX_USER_DESCRIPTORS];
@@ -31,6 +34,9 @@ int stdio_init()
 	return EXIT_SUCCESS;
 }
 
+int wipe(char *filename){
+	return k_fs_wipe_file(filename);
+}
 /*! Open a descriptor */
 int open(char *pathname, int flags, mode_t mode)
 {
