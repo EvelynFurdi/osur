@@ -17,6 +17,7 @@ static void alarm_nt(sigval_t param)
 	time_sub(&t, &t0);
 
 	if(get_HZ()!=HZ){
+		printf("HZ changed\n");
 		HZ=get_HZ();
 		
 	}

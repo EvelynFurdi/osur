@@ -20,7 +20,7 @@ static timespec_t clock; // Globalno sistemsko vrijeme
 //static timespec_t kernel_alarm_time = {0, 0}; // Vrijeme za alarm
 //static void (*kernel_alarm_handler)() = NULL; // Handler za alarm
 
-static int HZ_changed=0;
+
 /*! List of active timers */
 static list_t ktimers;
 
@@ -33,15 +33,12 @@ volatile static int sleep_retval, wake_up;
 void arch_timer_set_interval(timespec_t period);
 
 static volatile int HZ = 1000;
+static volatile int newHZ = 0;
 
 // Funkcija za postavljanje HZ vrijednosti
 void set_HZ(int new_hz) {
-    
-	HZ = new_hz;
-    HZ_changed = 1;
-    
-    timespec_t period = {0,1000000000/HZ};
-    arch_timer_set_interval(period);
+	newHZ = new_hz;
+	
 }
 
 // Funkcija za dohvat trenutne HZ vrijednosti
@@ -50,13 +47,8 @@ int get_HZ(void) {
 }
 
 void core_timer_interrupt_handler(void) {
-    //printf("increment %d %d\n",increment.tv_sec,increment.tv_nsec);
 
-	if (!HZ_changed && clock.tv_sec >= 3) {
-        // Promijeni HZ
-        set_HZ(5000);
-    }
-
+	
 	timespec_t period = {0,1000000000/HZ};
     time_add(&clock, &period);
     
@@ -66,7 +58,12 @@ void core_timer_interrupt_handler(void) {
         clock.tv_sec++;
     }
    
-
+	if (newHZ > 0){
+        HZ=newHZ;
+        newHZ=0;
+        timespec_t period = {0,1000000000/HZ};
+        arch_timer_set_interval(period);
+    }
 	
     ktimer_schedule();
 
@@ -102,6 +99,9 @@ int kclock_gettime(clockid_t clockid, timespec_t *time)
 
 	*time=clock;
 	//printf("getTime: %d\n",time);
+	if(clock.tv_sec>=3){
+		set_HZ(5000);
+	}
 
 	return EXIT_SUCCESS;
 }
